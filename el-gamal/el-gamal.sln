@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.810.25
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "el-gamal", "el-gamal\el-gamal.csproj", "{CB11D927-C9E5-48E7-B5BE-76ED608E53F7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|anycpu = Debug|anycpu
+		Release|anycpu = Release|anycpu
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CB11D927-C9E5-48E7-B5BE-76ED608E53F7}.Debug|anycpu.ActiveCfg = Debug|anycpu
+		{CB11D927-C9E5-48E7-B5BE-76ED608E53F7}.Debug|anycpu.Build.0 = Debug|anycpu
+		{CB11D927-C9E5-48E7-B5BE-76ED608E53F7}.Release|anycpu.ActiveCfg = Release|anycpu
+		{CB11D927-C9E5-48E7-B5BE-76ED608E53F7}.Release|anycpu.Build.0 = Release|anycpu
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {02CD9FFA-6450-4305-8162-206506625FA6}
+	EndGlobalSection
+EndGlobal
