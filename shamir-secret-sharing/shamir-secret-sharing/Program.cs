@@ -9,7 +9,7 @@ namespace shamirsecretsharing
         {
 
 
-            ReadUservalues(out double secretNumber, out int numberOfCoefficients, out int numberOfShares);
+            ReadUservalues(out int modificationMethod,out double secretNumber, out int numberOfCoefficients, out int numberOfShares);
 
             double[] coefficientsArray = new double[numberOfCoefficients];
             
@@ -18,26 +18,44 @@ namespace shamirsecretsharing
             Point[] pointsArray = new Point[numberOfShares];
 
             GenerateShares(secretNumber, coefficientsArray, numberOfShares, pointsArray);
+            if (modificationMethod == 1 || modificationMethod ==2)
+            {
+                ModifyShares(pointsArray, modificationMethod);
+                Decrypt(pointsArray, numberOfCoefficients);
+            }
+                if (modificationMethod == 3)
+            {
+                AddRandomORK(numberOfShares, numberOfCoefficients, pointsArray);
+                Point[] pickedShares = new Point[numberOfCoefficients + 1];
+                PickRamdonShares(pickedShares,pointsArray, numberOfCoefficients);
+                Decrypt(pickedShares, numberOfCoefficients);
+            }
+            if (modificationMethod==4)
+                GenerateLagrangeORKs(pointsArray, numberOfCoefficients);
 
-            // ModifyShares(pointsArray);
-
-            AddRandomORK(numberOfShares, numberOfCoefficients, pointsArray);
-            Point[] pickedShares = new Point[numberOfCoefficients + 1];
-            PickRamdonShares(pickedShares,pointsArray, numberOfCoefficients);
-            Decrypt(pickedShares, numberOfCoefficients);
+           
 
         }
 
-        private static void ReadUservalues(out double secretNumber, out int numberOfCoefficients, out int numberOfShares)
+        private static void ReadUservalues(out int modificationMethod,out double secretNumber, out int numberOfCoefficients, out int numberOfShares)
         {
+           WriteLine(" 1: Adding a factor to shares.\n 2: Multiplying the shares by a factor.\n 3: Modify shares by random numbers.\n 4: Modify shares with lagrange.");
+            Write("please enter the number to select share modification method as above :");
+            modificationMethod = int.Parse(ReadLine());
+            
             Write("Enter secret number :");
             secretNumber = double.Parse(ReadLine());
 
             Write("Enter the number of coefficients:");
             numberOfCoefficients = int.Parse(ReadLine());
 
-            Write("Enter the number of shares:");
-            numberOfShares = int.Parse(ReadLine());
+            if (modificationMethod == 3)
+            {
+                Write("Enter the number of shares:");
+                numberOfShares = int.Parse(ReadLine());
+            }
+            else
+                numberOfShares = numberOfCoefficients + 1;
         }
         private static void GenerateCoefficients(double[] coefficientsArray, int numberOfCoefficients)
         {
@@ -88,17 +106,22 @@ namespace shamirsecretsharing
             }
             return false;
         }
-
-        private static void ModifyShares(Point[] pointsArray)
+        // Modify shares with addition and multipication
+        private static void ModifyShares(Point[] pointsArray, int modificationMethod)
         {
             Write("Enter modification factor:");
             int modification_fact = int.Parse(ReadLine());
             foreach (Point p in pointsArray)
-                p.Y = p.Y + modification_fact;
+            {
+                if(modificationMethod ==1)
+                    p.Y = p.Y + modification_fact;
+                else if (modificationMethod ==2)
+                    p.Y = p.Y * modification_fact;
+            }
             WriteLine(pointsArray[0].X + " ," + pointsArray[0].Y);
         }
 
-
+        // Genarete random ORKs based on the same number of coefficients
         private static void AddRandomORK(int numberOfShares, int numberOfCoefficients, Point[] pointsArray)
         {
             
@@ -130,13 +153,51 @@ namespace shamirsecretsharing
                 }
                 r = r + modificationFact;
 
-                pointsArray[j].R = r;
+               // pointsArray[j].R = r;
                 pointsArray[j].Y = pointsArray[j].Y + r;
-                WriteLine(pointsArray[j].X + " ," + pointsArray[j].Y + " ," + pointsArray[j].R);
+                WriteLine(pointsArray[j].X + " ," + pointsArray[j].Y );
 
                 j++;
 
             }
+        }
+
+        private static void GenerateLagrangeORKs(Point[] pointsArray, int numberOfCoefficients)
+        {
+            Write("Enter modification factor:");
+            double modificationFact = double.Parse(ReadLine());
+            for (int i = 0; i <= numberOfCoefficients; i++)
+            {
+                double xm = 1;
+                for (int j = 0; j <= numberOfCoefficients; j++)
+                {
+
+                    if (i != j)
+                    {
+                        xm = xm * (pointsArray[j].X / (pointsArray[j].X - pointsArray[i].X));
+                    }
+
+                }
+                pointsArray[i].Y = Math.Pow(modificationFact, pointsArray[i].Y * xm);
+                WriteLine("The modified share : " + pointsArray[i].Y);
+            }
+            DecryptLagrangeORKs(pointsArray, numberOfCoefficients, modificationFact);
+        }
+
+        private static void DecryptLagrangeORKs(Point[] points, int numberOfCoefficients,double modificationFact)
+        {
+            double multipliedShares = 1;
+            for (int i = 0; i <= numberOfCoefficients; i++)
+            {
+                multipliedShares = multipliedShares * points[i].Y;
+            }
+              
+            WriteLine("The modified share : " + multipliedShares);
+
+            //double secret = Math.Pow(multipliedShares, (1.0 / modificationFact));
+            double secret = Math.Log(multipliedShares) / Math.Log(modificationFact);
+            WriteLine("print secret : " + secret);
+
         }
 
         // Pick the minimum required number of shares randomlly
@@ -150,7 +211,7 @@ namespace shamirsecretsharing
                 if (!Isduplicate(pickedShares, points[index].X))
                 {
                     pickedShares[i] = points[index];
-                    WriteLine("Picked shares: " + pickedShares[i].X + " ," + pickedShares[i].Y + " ," + pickedShares[i].R);
+                    WriteLine("Picked shares: " + pickedShares[i].X + " ," + pickedShares[i].Y);
                     i++;
                 }
             }
@@ -173,7 +234,7 @@ namespace shamirsecretsharing
                 }
                 y = y + points[i].Y * xm;
             }
-            WriteLine("print secret : " + y);
+            WriteLine("The modified share : " + y);
 
         }
     }
@@ -182,8 +243,7 @@ namespace shamirsecretsharing
     {
         public double X { get; set; }
         public double Y { get; set; }
-        public double R { get; set; }
-
+       
         public Point(double x, double y)
         {
             X = x;
