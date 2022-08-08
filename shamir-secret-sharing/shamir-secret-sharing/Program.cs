@@ -19,11 +19,13 @@ namespace shamirsecretsharing
 
                 if (modificationMethod == 5)
                     GenerateSharesFiniteFields(coefficientsArray, secretNumber, numberOfShares, pointsArray);
+                else if(modificationMethod ==6)
+                    GenerateLagWithFiniteFileds(coefficientsArray, secretNumber, numberOfShares, pointsArray);
                 else
                 {
                     GenerateShares(secretNumber, coefficientsArray, numberOfShares, pointsArray);
 
-                    if (modificationMethod == 1 || modificationMethod == 2)
+                   if (modificationMethod == 1 || modificationMethod == 2)
                         ModifyShares(pointsArray, modificationMethod, numberOfCoefficients);
                    if (modificationMethod == 3)
                     {
@@ -42,7 +44,7 @@ namespace shamirsecretsharing
 
         private static bool ReadUserValues(out int modificationMethod, out double secretNumber, out int numberOfCoefficients, out int numberOfShares)
         {
-            WriteLine(" 1: Adding a factor to shares.\n 2: Multiplying the shares by a factor.\n 3: Modify shares by random numbers.\n 4: Modify shares with lagrange. \n 5. Finite fileds");
+            WriteLine(" 1: Adding a factor to shares.\n 2: Multiplying the shares by a factor.\n 3: Modify shares by random numbers.\n 4: Modify shares with lagrange. \n 5. Finite fileds. \n 6. Lag with finite fileds");
             Write("please enter the number to select share modification method as above :");
             bool validInput=true;
 
@@ -75,7 +77,7 @@ namespace shamirsecretsharing
             {
                 // Generate random numbers to assign coefficients within 10.
                 Random rnd = new Random();
-                coefficientsArray[i] = rnd.Next(10);
+                coefficientsArray[i] = rnd.Next(4);
                 i++;
             };
         }
@@ -184,7 +186,7 @@ namespace shamirsecretsharing
 
         private static void GenerateLagrangeORKs(Point[] pointsArray, int numberOfCoefficients)
         {
-            int prime = 1613;
+            
             Write("Enter modification factor:");
             if (int.TryParse(ReadLine(), out int modificationFact))
             {
@@ -200,7 +202,7 @@ namespace shamirsecretsharing
                         }
 
                     }
-                    pointsArray[i].Y = Math.Pow(modificationFact, (pointsArray[i].Y * xm)%prime );
+                    pointsArray[i].Y = Math.Pow(modificationFact, pointsArray[i].Y * xm );
                     WriteLine("The modified share : " + pointsArray[i].Y);
                 }
                 DecryptLagrangeORKs(pointsArray, numberOfCoefficients, modificationFact);
@@ -220,7 +222,7 @@ namespace shamirsecretsharing
             WriteLine("The modified share : " + multipliedShares);
 
             double secret = Math.Log(multipliedShares) / Math.Log(modificationFact);
-            WriteLine("print secret : " + secret);
+            WriteLine("print secret : " + Math.Round(secret));
 
         }
 
@@ -307,12 +309,19 @@ namespace shamirsecretsharing
                     }
 
                 }
-                // WriteLine("print secret temp x: " + xn + "," + xd);
-                y = points[i].Y * xn * ModInversCalculation((int)xd, prime);
+                WriteLine("print secret temp x: " + xn + "," + xd);
+                int neg = 1;
+                if (xd < 0)
+                    neg = -1;
+                y = points[i].Y * xn * (neg *ModInversCalculation((int)(neg *xd), prime));
                 // y = points[i].Y * xn / xd;
                 //WriteLine("print secret temp: " + (prime + s + y) + "," + y);
                 s = (s + y) % prime;
+                
             }
+            //WriteLine("print secret : " + s);
+            if (numberOfCoefficients % 2 != 0)
+                s = prime + s;
             WriteLine("print secret : " + s);
         }
 
@@ -329,13 +338,13 @@ namespace shamirsecretsharing
                 // prime, then modulo inverse
                 // is a^(m-2) mode m
                 Console.WriteLine(
-                    "Modular multiplicative inverse is "+return Power(a, m - 2, m)
+                    "Modular multiplicative inverse is "+Power(a, m - 2, m)
                     );
             }
             return Power(a, m - 2, m);
         }
 
-        // To compute x^y under
+        // To compute x^m-2 under
         // modulo m
         static int Power(int x, int y, int m)
         {
@@ -357,6 +366,42 @@ namespace shamirsecretsharing
             if (a == 0)
                 return b;
             return Gcd(b % a, a);
+        }
+
+        private static void GenerateLagWithFiniteFileds(double[] coefficientsArray, double secretNumber, int numberOfShares, Point[] pointsArray)
+        {
+            GenerateSharesFiniteFields(coefficientsArray, secretNumber, numberOfShares, pointsArray);
+            int prime = 1613;
+            Write("Enter modification factor:");
+            if (int.TryParse(ReadLine(), out int modificationFact))
+            {
+                double y = 0;
+                double s = 0;
+                for (int i = 0; i < numberOfShares; i++)
+                {
+                    double xn = 1;
+                    double xd = 1;
+                    for (int j = 0; j < numberOfShares; j++)
+                    {
+
+                        if (i != j)
+                        {
+                            xn = (xn * -pointsArray[j].X) % prime;
+                            xd = (xd * (-pointsArray[j].X + pointsArray[i].X)) % prime;
+                        }
+                    }
+                    int neg = 1;
+                    if (xd < 0)
+                        neg = -1;
+                    y = pointsArray[i].Y * xn * ( ModInversCalculation((int)(xd), prime));
+                    WriteLine("print  sub secret : " + y%prime);
+                    pointsArray[i].Y = Math.Pow(modificationFact, y%prime);
+                }
+                
+                DecryptLagrangeORKs(pointsArray, numberOfShares-1, modificationFact);
+            }
+            else
+                Write("Invalid modification factor entered !");
         }
 
 
