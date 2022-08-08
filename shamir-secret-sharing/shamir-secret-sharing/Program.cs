@@ -319,7 +319,7 @@ namespace shamirsecretsharing
                 s = (s + y) % prime;
                 
             }
-            //WriteLine("print secret : " + s);
+           
             if (numberOfCoefficients % 2 != 0)
                 s = prime + s;
             WriteLine("print secret : " + s);
@@ -337,7 +337,7 @@ namespace shamirsecretsharing
                 // If a and m are relatively
                 // prime, then modulo inverse
                 // is a^(m-2) mode m
-                Console.WriteLine(
+                WriteLine(
                     "Modular multiplicative inverse is "+Power(a, m - 2, m)
                     );
             }
@@ -376,7 +376,6 @@ namespace shamirsecretsharing
             if (int.TryParse(ReadLine(), out int modificationFact))
             {
                 double y = 0;
-                double s = 0;
                 for (int i = 0; i < numberOfShares; i++)
                 {
                     double xn = 1;
@@ -393,9 +392,10 @@ namespace shamirsecretsharing
                     int neg = 1;
                     if (xd < 0)
                         neg = -1;
-                    y = pointsArray[i].Y * xn * ( ModInversCalculation((int)(xd), prime));
+                    y = pointsArray[i].Y * xn * (neg* ModInversCalculation((int)(neg*xd), prime));
                     WriteLine("print  sub secret : " + y%prime);
-                    pointsArray[i].Y = Math.Pow(modificationFact, y%prime);
+                    WriteLine("---------------------" + Math.Pow(modificationFact, y % prime));
+                    pointsArray[i].Y = Math.Pow(modificationFact % prime, y%prime);
                 }
                 
                 DecryptLagrangeORKs(pointsArray, numberOfShares-1, modificationFact);
