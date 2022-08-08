@@ -77,7 +77,7 @@ namespace shamirsecretsharing
             {
                 // Generate random numbers to assign coefficients within 10.
                 Random rnd = new Random();
-                coefficientsArray[i] = rnd.Next(4);
+                coefficientsArray[i] = rnd.Next(10);
                 i++;
             };
         }
@@ -392,9 +392,7 @@ namespace shamirsecretsharing
                     int neg = 1;
                     if (xd < 0)
                         neg = -1;
-                    y = pointsArray[i].Y * xn * (neg* ModInversCalculation((int)(neg*xd), prime));
-                    WriteLine("print  sub secret : " + y%prime);
-                    WriteLine("---------------------" + Math.Pow(modificationFact, y % prime));
+                    y = pointsArray[i].Y * xn * (neg* ModInversCalculation((int)(neg*xd), prime)); 
                     pointsArray[i].Y = Math.Pow(modificationFact % prime, y%prime);
                 }
                 
