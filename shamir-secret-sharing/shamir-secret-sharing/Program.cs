@@ -8,7 +8,7 @@ namespace shamirsecretsharing
         public static void Main(string[] args)
         {
 
-            if (ReadUservalues(out int modificationMethod, out double secretNumber, out int numberOfCoefficients, out int numberOfShares))
+            if (ReadUserValues(out int modificationMethod, out double secretNumber, out int numberOfCoefficients, out int numberOfShares))
             {
 
                 double[] coefficientsArray = new double[numberOfCoefficients];
@@ -40,7 +40,7 @@ namespace shamirsecretsharing
 
         }
 
-        private static bool ReadUservalues(out int modificationMethod, out double secretNumber, out int numberOfCoefficients, out int numberOfShares)
+        private static bool ReadUserValues(out int modificationMethod, out double secretNumber, out int numberOfCoefficients, out int numberOfShares)
         {
             WriteLine(" 1: Adding a factor to shares.\n 2: Multiplying the shares by a factor.\n 3: Modify shares by random numbers.\n 4: Modify shares with lagrange. \n 5. Finite fileds");
             Write("please enter the number to select share modification method as above :");
@@ -49,13 +49,9 @@ namespace shamirsecretsharing
             if (!int.TryParse(ReadLine(), out modificationMethod))
                 validInput = false;
 
-            //modificationMethod = int.Parse(ReadLine());
-
             Write("Enter secret number :");
             if (!double.TryParse(ReadLine(), out secretNumber))
                 validInput = false;
-
-            //= double.Parse(ReadLine());
 
             Write("Enter the number of coefficients:");
             if (!int.TryParse(ReadLine(), out numberOfCoefficients))
@@ -91,7 +87,7 @@ namespace shamirsecretsharing
             {
                 // Generate random numbers to assign to x within 10.
                 Random rnd = new Random();
-                double x = rnd.Next(10);
+                double x = rnd.Next(15);
                 // Calculate y
                 int t = 0;
                 double y = 0;
@@ -188,6 +184,7 @@ namespace shamirsecretsharing
 
         private static void GenerateLagrangeORKs(Point[] pointsArray, int numberOfCoefficients)
         {
+            int prime = 1613;
             Write("Enter modification factor:");
             if (int.TryParse(ReadLine(), out int modificationFact))
             {
@@ -203,7 +200,7 @@ namespace shamirsecretsharing
                         }
 
                     }
-                    pointsArray[i].Y = Math.Pow(modificationFact, pointsArray[i].Y * xm);
+                    pointsArray[i].Y = Math.Pow(modificationFact, (pointsArray[i].Y * xm)%prime );
                     WriteLine("The modified share : " + pointsArray[i].Y);
                 }
                 DecryptLagrangeORKs(pointsArray, numberOfCoefficients, modificationFact);
@@ -314,7 +311,7 @@ namespace shamirsecretsharing
                 y = points[i].Y * xn * ModInversCalculation((int)xd, prime);
                 // y = points[i].Y * xn / xd;
                 //WriteLine("print secret temp: " + (prime + s + y) + "," + y);
-                s = (prime + s + y) % prime;
+                s = (s + y) % prime;
             }
             WriteLine("print secret : " + s);
         }
@@ -325,15 +322,15 @@ namespace shamirsecretsharing
 
             int g = Gcd(a, m);
             if (g != 1)
-                Console.WriteLine("Inverse doesn't exist");
+                WriteLine("Inverse doesn't exist");
             else
             {
                 // If a and m are relatively
                 // prime, then modulo inverse
                 // is a^(m-2) mode m
                 Console.WriteLine(
-                    "Modular multiplicative inverse is "
-                    + Power(a, m - 2, m));
+                    "Modular multiplicative inverse is "+return Power(a, m - 2, m)
+                    );
             }
             return Power(a, m - 2, m);
         }
@@ -344,10 +341,9 @@ namespace shamirsecretsharing
         {
             if (y == 0)
                 return 1;
-
+    
             int p = Power(x, y / 2, m) % m;
             p = (p * p) % m;
-
             if (y % 2 == 0)
                 return p;
             else
