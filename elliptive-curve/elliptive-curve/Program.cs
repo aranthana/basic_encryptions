@@ -38,8 +38,7 @@ namespace elliptivecurve{
                     else
                         zeroCount++;
                 }
-                WriteLine("Final value : " + x_r + "," + y_r + " + " + x + "," + y);
-                //DoubleThePoint(ref  x, ref  y);
+                WriteLine("Final value : " + x_r + "," + y_r );
 
             }
         }
@@ -64,8 +63,7 @@ namespace elliptivecurve{
             {
                 binaryList.Add(n % 2);
                 n = n / 2;
-            } while (n!=1);
-            binaryList.Add(1);
+            } while (n!=0);
             return binaryList;
         }
         private static void GenerateY(double x,out double y)
