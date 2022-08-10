@@ -10,7 +10,7 @@ namespace elliptivecurve{
                 double x_r = x;
                 GenerateY( x, out double y);
                 double y_r = y;
-                int prime = 23;
+                int prime = 1613;
                 ScalarMultiplication(d, x, y, ref x_r, ref y_r,prime);
                 WriteLine("Final value for public key: " + x_r + "," + y_r+","+x+","+y );
                 GenerateSignature(d, x, y, out int hashedMessage, out double signature, out double x_random,prime);
@@ -69,7 +69,7 @@ namespace elliptivecurve{
                     while (zeroCount > 0)
                     {
                         //DoubleThePoint(ref x, ref y);
-                        DoubleThePointFiniteFiled(ref x, ref y);
+                        DoubleThePointFiniteFiled(ref x, ref y,prime);
                         zeroCount--;
                     }
                     if (firstOne)
@@ -81,7 +81,7 @@ namespace elliptivecurve{
                     else
                     {
                         // DoubleThePoint(ref x, ref y);
-                        DoubleThePointFiniteFiled(ref x, ref y);
+                        DoubleThePointFiniteFiled(ref x, ref y,prime);
                         //AddDifferentPoints(ref x_r, ref y_r, x, y);
                         AddPointsFiniteField(ref x_r, ref y_r, x, y,prime);
                     }
@@ -120,9 +120,8 @@ namespace elliptivecurve{
             //WriteLine("Added point and generated : " + x_r + " ," + y_r);
         }
 
-        private static void DoubleThePointFiniteFiled(ref double x, ref double y)
+        private static void DoubleThePointFiniteFiled(ref double x, ref double y,int prime)
         {
-            int prime = 23;
             //WriteLine("Points to be doubled : " + x + "," + y);
             double oldX = x;
             double m =Mod((3 * x * x + -2) * ModInversCalculation((int)(2 * y), prime), prime) ;
@@ -134,7 +133,7 @@ namespace elliptivecurve{
         {
             
             Random rnd = new Random();
-            int k = 19;// rnd.Next(1570);// shoule be below the the number of p[oints in the curve
+            int k = rnd.Next(prime);// shoule be below the the number of p[oints in the curve
             WriteLine("Random number: " + k);
             x_random = x;
             double y_random = y;
@@ -147,6 +146,9 @@ namespace elliptivecurve{
             WriteLine("Hashed Message: " + hashedMessage);
             signature = (ModInversCalculation(k, prime) * (hashedMessage + d * x_random)) % prime;
             WriteLine("Signature: " + signature );
+            if(signature==0)
+                GenerateSignature(d, x, y, out  hashedMessage, out  signature, out  x_random, prime);
+          
 
 
         }
