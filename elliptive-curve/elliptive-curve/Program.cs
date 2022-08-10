@@ -5,54 +5,30 @@ namespace elliptivecurve{
     {
         public static void Main(string[] args)
         {
-            if(ReadUserValues(out double x,  out int n))
+            if(ReadUserValues(out double x,  out int d))
             {
                 double x_r = x;
                 GenerateY( x, out double y);
                 double y_r = y;
-                List<int> binaryList = ConvertToBinary(n);
-                int zeroCount = 0;
-                bool firstOne = true;
-                for (int i = 0; i < binaryList.Count; i++)
-                {
-                    
-                    if (binaryList[i] == 1)
-                    {
-                        while (zeroCount > 0)
-                        {
-                            DoubleThePoint(ref x, ref y);
-                            zeroCount--;
-                        }
-                        if (firstOne)
-                        {
-                            firstOne = false;
-                            x_r = x;
-                            y_r = y;
-                        }
-                        else
-                        {
-                            DoubleThePoint(ref x, ref y);
-                            AddDifferentPoints(ref x_r, ref y_r, x, y);
-                        }
-                    }
-                    else
-                        zeroCount++;
-                }
-                WriteLine("Final value : " + x_r + "," + y_r );
+                int prime = 23;
+                ScalarMultiplication(d, x, y, ref x_r, ref y_r,prime);
+                WriteLine("Final value for public key: " + x_r + "," + y_r+","+x+","+y );
+                GenerateSignature(d, x, y, out int hashedMessage, out double signature, out double x_random,prime);
+                VerifySignature(signature, hashedMessage, x_random, x, y, x_r, y_r,prime);
 
             }
         }
 
 
-        private static bool ReadUserValues( out double x,  out int n)
+        private static bool ReadUserValues( out double x,  out int d)
         {
             bool validInput = true;
-            Write("Enter the x point: ");
+            Write("Enter the x point for generatot point: ");
             if (!double.TryParse(ReadLine(), out x))
                 validInput = false;
             
-            Write("Enter the n point: ");
-            if (!int.TryParse(ReadLine(), out n))
+            Write("Enter an integer for private key: ");
+            if (!int.TryParse(ReadLine(), out d))
                 validInput = false;
             return validInput;
         }
@@ -68,9 +44,52 @@ namespace elliptivecurve{
         }
         private static void GenerateY(double x,out double y)
         {
-            y = Math.Sqrt( Math.Pow(x, 3) + 3 * x + 5);
+           Write("Enter the y value for Generator point : ");
+            double.TryParse(ReadLine(),out y);
+            //y = 19;
+            //y= Math.Sqrt( Math.Pow(x, 3) + (3 * x) + 5);
+            //WriteLine("y" + y);
+        }
+        private static void GeneraateGPoint()
+        {
+
         }
 
+        private static void ScalarMultiplication(int d, double x, double y, ref double x_r, ref double y_r,int prime)
+        {
+            //WriteLine("print d " + d+"prime :" +prime);
+            List<int> binaryList = ConvertToBinary(d);
+            int zeroCount = 0;
+            bool firstOne = true;
+            for (int i = 0; i < binaryList.Count; i++)
+            {
+
+                if (binaryList[i] == 1)
+                {
+                    while (zeroCount > 0)
+                    {
+                        //DoubleThePoint(ref x, ref y);
+                        DoubleThePointFiniteFiled(ref x, ref y);
+                        zeroCount--;
+                    }
+                    if (firstOne)
+                    {
+                        firstOne = false;
+                        x_r = x;
+                        y_r = y;
+                    }
+                    else
+                    {
+                        // DoubleThePoint(ref x, ref y);
+                        DoubleThePointFiniteFiled(ref x, ref y);
+                        //AddDifferentPoints(ref x_r, ref y_r, x, y);
+                        AddPointsFiniteField(ref x_r, ref y_r, x, y,prime);
+                    }
+                }
+                else
+                    zeroCount++;
+            }
+        }
         private static void AddDifferentPoints(ref double x_r,ref double y_r, double x, double y)
         {
             WriteLine("Points to be added : "+x_r +"," +y_r + " + " + x + "," + y);
@@ -78,6 +97,7 @@ namespace elliptivecurve{
             x_r =  (m * m) - (x_r + x);
             y_r = -(m * (x_r - x)) - y;
             WriteLine("Added point and generated : " + x_r + " ," + y_r);
+            
         }
 
         private static void DoubleThePoint(ref double x, ref double y)
@@ -90,42 +110,86 @@ namespace elliptivecurve{
             WriteLine("Doubled point : " + x + "," + y);
         }
 
-        private static void AddPointsFiniteField(ref double x_r, ref double y_r, double x, double y)
+        private static void AddPointsFiniteField(ref double x_r, ref double y_r, double x, double y, int prime)
         {
-            int prime = 1613;
-            WriteLine("Points to be added : " + x_r + "," + y_r + " + " + x + "," + y);
-            double m = ((y_r - y) * ModInversCalculation((int)(x_r - x),prime)) % prime;
-            x_r = ((m * m) - (x_r + x)) % prime;
-            y_r = (m * (x - x_r) - y) % prime;
-            WriteLine("Added point and generated : " + x_r + " ," + y_r);
+            
+            //WriteLine("Points to be added : " + x_r + "," + y_r + " + " + x + "," + y);
+            double m = Mod((y_r - y) * ModInversCalculation((int)(x_r - x),prime) , prime);
+            x_r = Mod((m * m) - (x_r + x), prime);
+            y_r = Mod(m * (x - x_r) - y , prime);
+            //WriteLine("Added point and generated : " + x_r + " ," + y_r);
         }
 
         private static void DoubleThePointFiniteFiled(ref double x, ref double y)
         {
-            int prime = 1613;
-            WriteLine("Points to be doubled : " + x + "," + y);
+            int prime = 23;
+            //WriteLine("Points to be doubled : " + x + "," + y);
             double oldX = x;
-            double m =(((3 * x * x) + 3) * ModInversCalculation((int)(2 * y), prime)) % prime ;
-            x = (m * m - 2 * x) % prime;
-            y = (m * (oldX-x) - y) % prime;
-            WriteLine("Doubled point : " + x + "," + y);
+            double m =Mod((3 * x * x + -2) * ModInversCalculation((int)(2 * y), prime), prime) ;
+            x = Mod(m * m - (2 * x),  prime);
+            y = Mod(m * (oldX-x) - y, prime);
+            //WriteLine("Doubled point : " + x + "," + y);
         }
+        private static void GenerateSignature(int d,double x, double y, out int hashedMessage, out double signature, out double x_random, int prime)
+        {
+            
+            Random rnd = new Random();
+            int k = 19;// rnd.Next(1570);// shoule be below the the number of p[oints in the curve
+            WriteLine("Random number: " + k);
+            x_random = x;
+            double y_random = y;
+            //WriteLine("Random point before: "+k+"," + x_random + "," + y_random + "," + x + "," + y);
+            ScalarMultiplication(k, x, y, ref x_random, ref y_random, prime);
+            WriteLine("Random point: " + x_random + "," + y_random + "," + x + "," + y);
+            x_random = x_random % prime;
+            WriteLine("Random point x: " + x_random );
+            hashedMessage = HashMessage(prime);
+            WriteLine("Hashed Message: " + hashedMessage);
+            signature = (ModInversCalculation(k, prime) * (hashedMessage + d * x_random)) % prime;
+            WriteLine("Signature: " + signature );
 
+
+        }
+        private static int HashMessage(int prime)
+        {
+            int n = 1;
+            do
+            {
+                n++;
+            } while (Math.Pow(2, n) < prime);
+            Random rnd = new Random();
+            int random = rnd.Next(prime);
+            return random * n<0? -random * n: random * n;
+        } 
+
+        private static void VerifySignature(double signature, int hashedMessage,double x_random, double x, double y,double x_r, double y_r, int prime)
+        {
+            WriteLine("Verify with : " + signature + "," + hashedMessage + "," + x_random + "," + x +","+y+", " + x_r + "," + y_r);
+          
+            double x_1 = x;
+            double y_1 = y;
+            ScalarMultiplication((ModInversCalculation((int)signature, prime) * hashedMessage) % prime, x, y, ref x_1, ref y_1, prime);
+            WriteLine("Generated Point 1: " + x_1 + "," + y_1 + "," + x + "," + y);
+            double x_2 = x_r;
+            double y_2 = y_r;
+            ScalarMultiplication((ModInversCalculation((int)signature, prime) * (int)x_random)%prime, x_r, y_r, ref x_2, ref y_2,prime);
+            WriteLine("Generated Point 2: " + x_2 + "," + y_2 + "," + x_r + "," + y_r);
+            AddPointsFiniteField(ref x_1, ref y_1, x_2, y_2,prime);
+            WriteLine("Generated Point 3: " + x_1 + "," + y_1 );
+        }
           /*  Method to calculate mod inverse. */
         private static int ModInversCalculation(int a, int m)
         {
 
             int g = Gcd(a, m);
-            if (g != 1)
-                WriteLine("Inverse doesn't exist");
+            if (g != 1) { }
+                //WriteLine("Inverse doesn't exist");
             else
             {
                 // If a and m are relatively
                 // prime, then modulo inverse
                 // is a^(m-2) mode m
-                WriteLine(
-                    "Modular multiplicative inverse is "+Power(a, m - 2, m)
-                    );
+                //WriteLine("Modular multiplicative inverse is "+Power(a, m - 2, m));
             }
             return Power(a, m - 2, m);
         }
@@ -152,6 +216,11 @@ namespace elliptivecurve{
             if (a == 0)
                 return b;
             return Gcd(b % a, a);
+        }
+        private static double Mod(double a, int p)
+        {
+            double m = a % p;
+            return m < 0 ? m + p : m;
         }
 
 
